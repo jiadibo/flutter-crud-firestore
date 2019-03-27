@@ -29,24 +29,26 @@ class _TodoListState extends State<TodoList> {
           if (listPerson == null) {
             return Text("Loading");
           } else {
-            return Container(
-              child: InkWell(
-                onTap: () => viewDetail(context, listPerson[index]),
+            return InkWell(
+              onTap: () => viewDetail(context, listPerson[index]),
+              child: Padding(
+                padding: const EdgeInsets.all(4.0),
                 child: Card(
                   margin: EdgeInsets.all(2.0),
                   child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     children: <Widget>[
-                      Text(
+                      ListTile(
+                        leading: Icon(Icons.person),
+                        title:  Text(
                         listPerson[index].nama,
                         style: TextStyle(fontSize: 24),
+                        
                       ),
-                      Text(listPerson[index].tugas),
-                      RaisedButton(
-                        child: Text("Delete"),
-                        onPressed: (){
-                          
-                        },
+                      subtitle: Text(listPerson[index].tugas),
                       ),
+                     
+                      
                     ],
                   ),
                 ),
@@ -56,14 +58,22 @@ class _TodoListState extends State<TodoList> {
         },
       ),
       floatingActionButton: FloatingActionButton(
+        child: Icon(Icons.add),
         onPressed: () {
           Navigator.push(
-              context, MaterialPageRoute(builder: (context) => AddTask()));
-          // Navigator.push(context,
-          //     MaterialPageRoute(builder: (context) => Detail("Tambah Task")));
+            context,
+            MaterialPageRoute(
+              builder: (context) => AddTask(),
+            ),
+          );
         },
       ),
     );
+  }
+
+  void viewDetail(BuildContext context, TaskPerson person) {
+    Navigator.push(
+        context, MaterialPageRoute(builder: (context) => Detail(person)));
   }
 
   void loadTask() {
@@ -78,18 +88,10 @@ class _TodoListState extends State<TodoList> {
     });
   }
 
-  void viewDetail(BuildContext context, TaskPerson person) {
-    Navigator.push(
-        context, MaterialPageRoute(builder: (context) => Detail(person)));
+  void deleteData(DocumentSnapshot doc, TaskPerson person) async {
+    await Firestore.instance.collection('CRUD').document(person.id).delete();
+    setState(() => person.id = null);
   }
-
-  // void deleteData(DocumentSnapshot doc, TaskPerson person) async {
-  //   await Firestore.instance
-  //       .collection('CRUD')
-  //       .document(doc.documentID)
-  //       .delete();
-  //   setState(() => person.id = null);
-  // }
 }
 
 class TaskPerson {

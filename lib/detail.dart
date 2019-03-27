@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:todolist/todolist.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:todolist/todolist.dart';
 
 class Detail extends StatefulWidget {
   final TaskPerson person;
@@ -15,6 +14,8 @@ class Detail extends StatefulWidget {
 class _DetailState extends State<Detail> {
   TaskPerson person;
 
+  final GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
+
   _DetailState(this.person);
 
   @override
@@ -23,46 +24,94 @@ class _DetailState extends State<Detail> {
       appBar: AppBar(
         title: Text("Detail Task"),
       ),
-      body: Column(children: <Widget>[
-        Text(person.nama),
-        Text(person.id),
-        // RaisedButton(
-        //   child: Text("Delete"),
-        //   onPressed: () {
-        //     deleteData,
-        //     moveToLastScreen();
-        //   },
-        // ),
-        //2. membuat form
-      ]),
+      body: Center(
+        child: Card(
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                children: <Widget>[
+                  TextFormField(
+                    decoration: InputDecoration(
+                      border: InputBorder.none,
+                      hintText: 'name',
+                      fillColor: Colors.grey[300],
+                      filled: true,
+                    ),
+                    initialValue: person.nama,
+                    validator: (value) {
+                      if (value.isEmpty) {
+                        return 'Please enter some text';
+                      }
+                    },
+                    onSaved: (value) => person.nama = value,
+                  ),
+                  TextFormField(
+                    decoration: InputDecoration(
+                      border: InputBorder.none,
+                      hintText: 'name',
+                      fillColor: Colors.grey[300],
+                      filled: true,
+                    ),
+                    initialValue: person.tugas,
+                    validator: (value) {
+                      if (value.isEmpty) {
+                        return 'Please enter some text';
+                      }
+                    },
+                    onSaved: (value) => person.tugas = value,
+                  ),
+                  Row(
+                    mainAxisSize: MainAxisSize.max,
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: <Widget>[
+                      RaisedButton(
+                        child: Text("Update"),
+                        onPressed: () => updateData(person),
+                      ),
+                      RaisedButton(
+                        child: Text("Delete"),
+                        onPressed: () => deleteData(person),
+                      ),
+                    ],
+                  )
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 
-  // void moveToLastScreen(){
-  //   Navigator.pop(context, true);
-  // }
+  void updateData(TaskPerson person) async {
+    if (_formKey.currentState.validate()) {
+      _formKey.currentState.save();
+      await Firestore.instance
+          .collection('todolist')
+          .document(person.id)
+          .updateData({'name': person.nama, 'task': person.tugas}).whenComplete(
+              () {
+        print("Berhasil di update");
+      });
+      setState(() => person.nama = person.nama);
+      print(person.nama);
+    }
+  }
 
-  // void createData() async {
-  //   if (_formKey.currentState.validate()) {
-  //     _formKey.currentState.save();
-  //     DocumentReference ref = await db
-  //         .collection('todolist')
-  //         .add({'name': '$nama', 'task': '$tugas'});
-  //     setState(() => id = ref.documentID);
-  //     print(ref.documentID);
-  //   }
-  // }
   void moveToLastScreen() {
     Navigator.pop(context, true);
   }
 
-  void deleteData(DocumentSnapshot doc) async {
+  void deleteData(TaskPerson person) async {
     await Firestore.instance
         .collection('todolist')
-        .document(doc.documentID)
+        .document(person.id)
         .delete();
     setState(() {
       person.id = null;
+      print("data id = ${person.id}");
     });
   }
 }
